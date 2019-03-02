@@ -1,13 +1,41 @@
 # COMPILER PYTHON
 
 source = input("expression:\n")
-source = ''.join(source.split())
-
 
 OPS = {
     "+" : "PLUS",
-    "-" : "MINUS"
+    "-" : "MINUS",
+    "*" : "MULT",
+    "/" : "DIV"
 }
+
+class PrePro():
+
+    def spaces(Source):
+        return  ''.join(source.split())
+
+    def filter(source):
+
+        temp_source = source
+
+        occurencies = source.count("'")
+        idxs = [i for i, a in enumerate(source) if a == "'"]
+
+        for i in range(occurencies):
+            idx = temp_source.find("'")
+            idx_count = idx
+            
+            while idx_count < len(temp_source):
+                if source[idx_count] == "\\":
+                    if source[idx_count + 1] == "n" or source[idx_count + 1] == "r":
+                        idx_count += 2
+                        break
+                        
+                idx_count += 1
+            
+            temp_source = temp_source[:idx] + temp_source[idx_count:]
+
+        return temp_source
 
 class Token():
 
@@ -48,7 +76,7 @@ class Tokenizer():
             else:
 
                 # Invalid Token
-                raise ValueError("Invalid Input")
+                raise ValueError(f"{self.origin[self.position]} is not a number")   
 
         else:
 
@@ -56,7 +84,8 @@ class Tokenizer():
 
         self.actual = token
 
-        #print(self.actual.tp,self.actual.value)
+        print(self.actual.tp,self.actual.value)
+
 
 class Parser():
 
@@ -64,11 +93,11 @@ class Parser():
 
     def run(source):
         Parser.tokens = Tokenizer(source)
-        Parser.tokens.selectNext()
+        #Parser.tokens.selectNext()
 
-    def parseExpression():
-        
-        result = None
+    def parseTerm():
+
+        Parser.tokens.selectNext()
         
         if Parser.tokens.actual.tp == "INT":
 
@@ -76,21 +105,21 @@ class Parser():
 
             Parser.tokens.selectNext()
 
-            while Parser.tokens.actual.tp in OPS.values():
+            while Parser.tokens.actual.tp == "DIV" or Parser.tokens.actual.tp == "MULT":
  
-                if Parser.tokens.actual.tp == "PLUS":
+                if Parser.tokens.actual.tp == "DIV":
                     
                     Parser.tokens.selectNext()
                     if Parser.tokens.actual.tp == "INT":
-                        result += Parser.tokens.actual.value
+                        result //= Parser.tokens.actual.value
                     else:
                         # not a number after an operator
                         raise ValueError("Invalid Input")
 
-                elif Parser.tokens.actual.tp == "MINUS":
+                elif Parser.tokens.actual.tp == "MULT":
                     Parser.tokens.selectNext()
                     if Parser.tokens.actual.tp == "INT":
-                        result -= Parser.tokens.actual.value
+                        result *= Parser.tokens.actual.value
                     else:
                         # not a number after an operator
                         raise ValueError("Invalid Input")
@@ -105,5 +134,25 @@ class Parser():
         return result 
 
 
+    def parseExpression():
+
+        #print(Parser.tokens.actual.tp)
+        result = Parser.parseTerm()
+
+        while Parser.tokens.actual.tp != "EOF" :
+
+            if Parser.tokens.actual.tp == "PLUS":
+                result += Parser.parseTerm()
+
+            elif Parser.tokens.actual.tp == "MINUS":
+                result -= Parser.parseTerm()
+
+            else:
+                raise ValueError(f"{Parser.tokens.actual.value} is not a valid Operator")
+
+        return result
+
+source = PrePro.spaces(source)
+source = PrePro.filter(source)
 Parser.run(source)
 print(Parser.parseExpression())

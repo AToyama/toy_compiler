@@ -1,12 +1,17 @@
 # COMPILER PYTHON
 
+# - colocar EOF no run
+# - while not + ou - no expression
+
 source = input("expression:\n")
 
 OPS = {
     "+" : "PLUS",
     "-" : "MINUS",
     "*" : "MULT",
-    "/" : "DIV"
+    "/" : "DIV",
+    "(" : "OPENP",
+    ")" : "CLOSEP"
 }
 
 class PrePro():
@@ -50,8 +55,16 @@ class Tokenizer():
         self.position = 0
         self.actual = None
 
-    def selectNext(self):
+    def selectNext(self): 
+
+        # Tokenize the expression
         if self.position < len(self.origin):
+
+            # ignore spaces
+            while self.origin[self.position] == " ":
+                self.position += 1
+                if self.position == len(self.origin):
+                    break   
 
             if self.origin[self.position].isdigit():
                 
@@ -78,13 +91,14 @@ class Tokenizer():
                 # Invalid Token
                 raise ValueError(f"{self.origin[self.position]} is not a number")   
 
+        # End of File 
         else:
 
             token = Token("EOF", None)
 
         self.actual = token
 
-        print(self.actual.tp,self.actual.value)
+        #print(self.actual.tp,self.actual.value)
 
 
 class Parser():
@@ -93,45 +107,48 @@ class Parser():
 
     def run(source):
         Parser.tokens = Tokenizer(source)
-        #Parser.tokens.selectNext()
 
-    def parseTerm():
+    def parseFactor():
 
         Parser.tokens.selectNext()
-        
+
         if Parser.tokens.actual.tp == "INT":
-
             result = int(Parser.tokens.actual.value)
-
             Parser.tokens.selectNext()
 
-            while Parser.tokens.actual.tp == "DIV" or Parser.tokens.actual.tp == "MULT":
- 
-                if Parser.tokens.actual.tp == "DIV":
-                    
-                    Parser.tokens.selectNext()
-                    if Parser.tokens.actual.tp == "INT":
-                        result //= Parser.tokens.actual.value
-                    else:
-                        # not a number after an operator
-                        raise ValueError("Invalid Input")
+        elif Parser.tokens.actual.tp == "PLUS":
+            result = Parser.parseFactor()
 
-                elif Parser.tokens.actual.tp == "MULT":
-                    Parser.tokens.selectNext()
-                    if Parser.tokens.actual.tp == "INT":
-                        result *= Parser.tokens.actual.value
-                    else:
-                        # not a number after an operator
-                        raise ValueError("Invalid Input")
-                else:
-                    raise ValueError(f"{Parser.tokens.actual.value} is not a valid Operator")
+        elif Parser.tokens.actual.tp == "MINUS":
+            result = -Parser.parseFactor()
 
+        elif Parser.tokens.actual.tp == "OPENP":
+            result = Parser.parseExpression()
+
+            if Parser.tokens.actual.tp != "CLOSEP":
+                raise ValueError("Missing parentheses")
+            else:
                 Parser.tokens.selectNext()
 
         else:
-            raise ValueError(f"{Parser.tokens.actual.value} is not a number")   
+            raise ValueError(f"{Parser.tokens.actual.value} not a valid operator")
 
-        return result 
+        return result
+
+
+    def parseTerm():
+
+        result = Parser.parseFactor()
+
+        while Parser.tokens.actual.tp == "DIV" or  Parser.tokens.actual.tp == "MULT":
+
+            if Parser.tokens.actual.tp == "MULT":
+                result *= Parser.parseFactor()
+
+            elif Parser.tokens.actual.tp == "DIV":
+                result //= Parser.parseFactor()
+
+        return result
 
 
     def parseExpression():
@@ -139,16 +156,13 @@ class Parser():
         #print(Parser.tokens.actual.tp)
         result = Parser.parseTerm()
 
-        while Parser.tokens.actual.tp != "EOF" :
+        while Parser.tokens.actual.tp == "PLUS" or  Parser.tokens.actual.tp == "MINUS":
 
             if Parser.tokens.actual.tp == "PLUS":
                 result += Parser.parseTerm()
 
             elif Parser.tokens.actual.tp == "MINUS":
                 result -= Parser.parseTerm()
-
-            else:
-                raise ValueError(f"{Parser.tokens.actual.value} is not a valid Operator")
 
         return result
 

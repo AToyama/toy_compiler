@@ -1,7 +1,6 @@
 # COMPILER PYTHON
 
 # - colocar EOF no run
-# - while not + ou - no expression
 
 source = input("expression:\n")
 
@@ -13,6 +12,71 @@ OPS = {
     "(" : "OPENP",
     ")" : "CLOSEP"
 }
+
+class Node():
+
+	def __init__(self):
+		
+		value = None
+		children = []
+
+		def Evaluate(self):
+			pass
+
+class BinOp(Node):
+
+    def __init__(self, value, children):
+
+        self.value = value
+        self.children = children
+
+    def Evaluate(self):
+
+        if self.value == "+":
+            return self.children[0].Evaluate() + self.children[1].Evaluate()
+            
+        elif self.value == "-":
+            return self.children[0].Evaluate() - self.children[1].Evaluate()
+
+        elif self.value == "*":
+            return self.children[0].Evaluate() * self.children[1].Evaluate()
+
+        elif self.value == "/":
+            return self.children[0].Evaluate() // self.children[1].Evaluate()
+
+class UnOp(Node):
+
+	def __init__(self, value, children):
+
+		self.value = value
+		self.children = children
+
+	def Evaluate(self):	
+
+		if self.value == "+":
+			return self.children.Evaluate()
+
+		elif self.value == "-":
+			return - self.children.Evaluate()
+
+class IntVal(Node):
+
+	def __init__(self, value):
+
+		self.value = value
+
+	def Evaluate(self):
+		return self.value
+
+class NoOp(Node):
+
+	def __init__(self, value):
+
+		self.value = None
+
+	def Evaluate(self):
+		pass
+
 
 class PrePro():
 
@@ -107,23 +171,29 @@ class Parser():
 
     def run(source):
         Parser.tokens = Tokenizer(source)
+        
+        if Parser.tokens.actual.tp != "EOF":
+            raise ValueError(f"{Parser.tokens.actual.value} invalid at end of sentence")
 
     def parseFactor():
 
         Parser.tokens.selectNext()
 
         if Parser.tokens.actual.tp == "INT":
-            result = int(Parser.tokens.actual.value)
+            node = IntVal(Parser.tokens.actual.value)
+            #result = int(Parser.tokens.actual.value)
             Parser.tokens.selectNext()
 
         elif Parser.tokens.actual.tp == "PLUS":
-            result = Parser.parseFactor()
+            node = UnOp("+",Parser.parseFactor())
+            #result = Parser.parseFactor()
 
         elif Parser.tokens.actual.tp == "MINUS":
-            result = -Parser.parseFactor()
+            #result = - Parser.parseFactor()
+            node = UnOp("+",Parser.parseFactor())
 
         elif Parser.tokens.actual.tp == "OPENP":
-            result = Parser.parseExpression()
+            node = Parser.parseExpression()
 
             if Parser.tokens.actual.tp != "CLOSEP":
                 raise ValueError("Missing parentheses")
@@ -133,40 +203,43 @@ class Parser():
         else:
             raise ValueError(f"{Parser.tokens.actual.value} not a valid operator")
 
-        return result
+        return node
 
 
     def parseTerm():
 
-        result = Parser.parseFactor()
+        node = Parser.parseFactor()
 
         while Parser.tokens.actual.tp == "DIV" or  Parser.tokens.actual.tp == "MULT":
 
             if Parser.tokens.actual.tp == "MULT":
-                result *= Parser.parseFactor()
+                #result *= Parser.parseFactor()
+                node = BinOp("*",[node,Parser.parseFactor()])
 
             elif Parser.tokens.actual.tp == "DIV":
-                result //= Parser.parseFactor()
+                #result //= Parser.parseFactor()
+                node = BinOp("/",[node,Parser.parseFactor()])
 
-        return result
+        return node
 
 
     def parseExpression():
 
-        #print(Parser.tokens.actual.tp)
-        result = Parser.parseTerm()
+        node = Parser.parseTerm()
 
         while Parser.tokens.actual.tp == "PLUS" or  Parser.tokens.actual.tp == "MINUS":
 
             if Parser.tokens.actual.tp == "PLUS":
-                result += Parser.parseTerm()
+                #result += Parser.parseTerm()
+                node = BinOp("+",[node,Parser.parseTerm()])
 
             elif Parser.tokens.actual.tp == "MINUS":
-                result -= Parser.parseTerm()
+                #result -= Parser.parseTerm()
+                node = BinOp("-",[node,Parser.parseTerm()])
 
-        return result
+        return node
 
 source = PrePro.spaces(source)
 source = PrePro.filter(source)
 Parser.run(source)
-print(Parser.parseExpression())
+print(Parser.parseExpression().Evaluate())

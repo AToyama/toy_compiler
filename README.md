@@ -1,5 +1,12 @@
 # toy_compiler
 
+## How To Use
+
+```
+$ python main.py [input file]
+```
+test.vbs available for testing in the repository
+
 ## EBNF
 
 ```

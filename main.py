@@ -1,110 +1,30 @@
 # COMPILER PYTHON
 
-# - colocar EOF no run
+# recognize \n from reading file
 
-source = input("expression:\n")
+from node import Node, BinOp, UnOp, IntVal, NoOp, Print, Assignment, Statement, Identifier
+from pre_process import PrePro
+from symboltable import SymbolTable
+from string import ascii_letters, ascii_lowercase
+import sys
 
-OPS = {
+CHAR = {
     "+" : "PLUS",
     "-" : "MINUS",
     "*" : "MULT",
     "/" : "DIV",
     "(" : "OPENP",
-    ")" : "CLOSEP"
+    ")" : "CLOSEP",
+    "=" : "EQUAL"
 }
 
-class Node():
+DOUBLE_CHAR = {
+    "\\n" : "BREAK_LINE"
+}
 
-	def __init__(self):
-		
-		value = None
-		children = []
+RESERVED = ['print','begin','end']
 
-		def Evaluate(self):
-			pass
-
-class BinOp(Node):
-
-    def __init__(self, value, children):
-
-        self.value = value
-        self.children = children
-
-    def Evaluate(self):
-
-        if self.value == "+":
-            return self.children[0].Evaluate() + self.children[1].Evaluate()
-            
-        elif self.value == "-":
-            return self.children[0].Evaluate() - self.children[1].Evaluate()
-
-        elif self.value == "*":
-            return self.children[0].Evaluate() * self.children[1].Evaluate()
-
-        elif self.value == "/":
-            return self.children[0].Evaluate() // self.children[1].Evaluate()
-
-class UnOp(Node):
-
-	def __init__(self, value, children):
-
-		self.value = value
-		self.children = children
-
-	def Evaluate(self):	
-
-		if self.value == "+":
-			return self.children.Evaluate()
-
-		elif self.value == "-":
-			return - self.children.Evaluate()
-
-class IntVal(Node):
-
-	def __init__(self, value):
-
-		self.value = value
-
-	def Evaluate(self):
-		return self.value
-
-class NoOp(Node):
-
-	def __init__(self, value):
-
-		self.value = None
-
-	def Evaluate(self):
-		pass
-
-
-class PrePro():
-
-    def spaces(Source):
-        return  ''.join(source.split())
-
-    def filter(source):
-
-        temp_source = source
-
-        occurencies = source.count("'")
-        idxs = [i for i, a in enumerate(source) if a == "'"]
-
-        for i in range(occurencies):
-            idx = temp_source.find("'")
-            idx_count = idx
-            
-            while idx_count < len(temp_source):
-                if source[idx_count] == "\\":
-                    if source[idx_count + 1] == "n" or source[idx_count + 1] == "r":
-                        idx_count += 2
-                        break
-                        
-                idx_count += 1
-            
-            temp_source = temp_source[:idx] + temp_source[idx_count:]
-
-        return temp_source
+VARNAME_CHARS = '0123456789_' + ascii_letters
 
 class Token():
 
@@ -129,7 +49,7 @@ class Tokenizer():
                 self.position += 1
                 if self.position == len(self.origin):
                     break   
-
+            
             if self.origin[self.position].isdigit():
                 
                 num = ""
@@ -144,10 +64,36 @@ class Tokenizer():
                     
                 token = Token("INT",int(num))
 
-            elif self.origin[self.position] in OPS:
+            elif self.origin[self.position] in CHAR:
 
-                token = Token(OPS[self.origin[self.position]],self.origin[self.position])
+                token = Token(CHAR[self.origin[self.position]],self.origin[self.position])
                 self.position += 1
+            
+            elif self.origin[self.position] == "\n":
+                token = Token("BREAK_LINE","\\n")
+                self.position += 1
+
+            elif self.origin[self.position].isalpha():
+                if self.origin[self.position].islower():
+                    
+                    aux = ""
+
+                    while self.origin[self.position] in VARNAME_CHARS:
+
+                        aux += self.origin[self.position]
+                        self.position += 1
+                       
+                        if self.position  == len(self.origin):
+                            break
+
+                    if aux in RESERVED:
+                        token = Token(aux.upper(),aux)
+
+                    else:
+                        token = Token("IDENTIFIER", aux)
+
+                else:
+                    raise SyntaxError("First letter must be lowercase")
 
 
             else:
@@ -170,7 +116,14 @@ class Parser():
     tokens = None
 
     def run(source):
+
+        source = PrePro.filter(source)
         Parser.tokens = Tokenizer(source)
+        Parser.tokens.selectNext()
+
+        st = SymbolTable()
+
+        Parser.parseStatements().Evaluate(st)
         
         if Parser.tokens.actual.tp != "EOF":
             raise ValueError(f"{Parser.tokens.actual.value} invalid at end of sentence")
@@ -190,7 +143,7 @@ class Parser():
 
         elif Parser.tokens.actual.tp == "MINUS":
             #result = - Parser.parseFactor()
-            node = UnOp("+",Parser.parseFactor())
+            node = UnOp("-",Parser.parseFactor())
 
         elif Parser.tokens.actual.tp == "OPENP":
             node = Parser.parseExpression()
@@ -199,7 +152,10 @@ class Parser():
                 raise ValueError("Missing parentheses")
             else:
                 Parser.tokens.selectNext()
-
+        
+        elif Parser.tokens.actual.tp == "IDENTIFIER":
+            node = Identifier(Parser.tokens.actual.value)
+            Parser.tokens.selectNext()
         else:
             raise ValueError(f"{Parser.tokens.actual.value} not a valid operator")
 
@@ -239,7 +195,59 @@ class Parser():
 
         return node
 
-source = PrePro.spaces(source)
-source = PrePro.filter(source)
+    def parseStatement():
+
+
+        if Parser.tokens.actual.tp == "IDENTIFIER":
+            variable_name = Identifier(Parser.tokens.actual.value)
+            Parser.tokens.selectNext()
+            if Parser.tokens.actual.tp == "EQUAL":
+                node = Assignment([variable_name, Parser.parseExpression()])
+        
+        elif Parser.tokens.actual.tp == "PRINT":
+            Parser.tokens.selectNext()
+            if Parser.tokens.actual.tp == "OPENP":
+                node = Print(Parser.parseExpression())
+
+                if Parser.tokens.actual.tp != "CLOSEP":
+                    raise SyntaxError("Missing parentheses")
+                Parser.tokens.selectNext()
+
+        elif Parser.tokens.actual.tp == "BEGIN":
+            node = Parser.parseStatements()
+               
+        return node 
+
+    def parseStatements():
+
+        statements_children = []
+
+        if  Parser.tokens.actual.tp == "BEGIN":
+            Parser.tokens.selectNext()
+
+            if Parser.tokens.actual.tp == "BREAK_LINE":
+                Parser.tokens.selectNext()
+
+                while Parser.tokens.actual.tp != "END":
+                    
+                    statements_children.append(Parser.parseStatement())
+                    
+                    while(Parser.tokens.actual.tp == "BREAK_LINE"):
+                        Parser.tokens.selectNext()
+
+                node = Statement(statements_children)
+                Parser.tokens.selectNext()
+
+                return node
+            
+            else:
+                raise SyntaxError("END statement missing")
+        
+        else:
+            raise SyntaxError("BEGIN statement missing")
+
+with open(sys.argv[1], 'r') as myfile:
+    source = myfile.read()
+#print(source)
+
 Parser.run(source)
-print(Parser.parseExpression().Evaluate())

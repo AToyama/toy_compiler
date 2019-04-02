@@ -1,0 +1,5 @@
+Receb o arquivo de entrada pelo terminal
+
+por exemplo se for pra usar o arquivo teste.toy execute:
+
+    $ python main.py teste.toy

@@ -1,8 +1,5 @@
-begin
-    x = 3
-    y =  x -- 2
-    begin
-        print(x*y) ' multiplicacao de variavel
-    end
-
-end
+x = 0
+while x < 5
+    print(x)
+    x = x+1
+wend

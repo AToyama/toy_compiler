@@ -11,11 +11,14 @@ test.vbs available for testing in the repository
 
 ```
 comandos = “Begin”, “\n”, comando, “\n”, { comando, “\n” }, “End” ;
-comando = atribuição | print | comandos ;
+comando = atribuição | print | while | if ;
+if = rel, then, comandos, (else, comandos, endif | endif);
+while = rel, comandos, wend;
 atribuição = identificador, “=”, expressão ;
-expressão = termo, { (“+” | “-”), termo } ;
-termo = fator, { (“*” | “/”), fator } ;
-fator = (“+” | “-”), fator | número | “(”, expressão, “)” | identificador ;
+rel = expressão, (“=” | “<” | “>”), expressão
+expressão = termo, { (“+” | “-” | “or”), termo } ;
+termo = fator, { (“*” | “/” | “and”), fator } ;
+fator = (“+” | “-” | “not”), fator | número | “(”, expressão, “)” | identificador | Input ;
 identificador = letra, { letra | digito | “_” } ;
 número = dígito, { dígito } ;
 letra = ( a | ... | z | A | ... | Z ) ;

@@ -84,7 +84,6 @@ class Print(Node):
         self.children = children
 
     def Evaluate(self, symboltable):
-
         print(self.children.Evaluate(symboltable))
 
 class Assignment(Node):
@@ -135,10 +134,11 @@ class If(Node):
     def Evaluate(self, symboltable):
 
         if self.children[0].Evaluate(symboltable):
-            self.children[1].Evaluate(symboltable)
+            for child in self.children[1]:
+                child.Evaluate(symboltable)
         else:
-            if self.children[2]:
-                self.children[2].Evaluate(symboltable)
+            for child in self.children[2]:
+                child.Evaluate(symboltable)
 
 class While(Node):
 
@@ -150,3 +150,40 @@ class While(Node):
         while self.children[0].Evaluate(symboltable):
             self.children[1].Evaluate(symboltable)
 
+class Type(Node):
+    
+    def __init__(self, value):
+        
+        self.value = value    
+
+    def Evaluate(self, symboltable):
+
+        return self.value
+
+class BoolVal(Node):
+    def __init__(self, value):
+        self.value = value
+
+    def Evaluate(self, st):
+        
+        if self.value == "TRUE":
+            return (True, "BOOLEAN")
+
+        elif self.value == "FALSE":
+            return (False, "BOOLEAN")
+
+class VarDec(Node):
+
+    def __init__(self, children):
+        self.children = children
+
+    def Evaluate(self, st):
+            st.declare(self.children[0].value, self.children[1].Evaluate(st))
+class Program(Node):
+    
+    def __init__(self, children):
+        self.children = children
+
+    def Evaluate(self, st):
+        for child in self.children:
+            child.Evaluate(st)

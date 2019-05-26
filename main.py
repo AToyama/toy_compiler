@@ -5,7 +5,7 @@
 
 # v2.3
 
-from node import Node, BinOp, UnOp, IntVal, NoOp, Print, Assignment, Statement, Identifier, Input, While, If, VarDec, Type, BoolVal, Program
+from node import Node, BinOp, UnOp, IntVal, NoOp, Print, Assignment, Identifier, Input, While, If, VarDec, Type, BoolVal, Program
 from pre_process import PrePro
 from symboltable import SymbolTable
 from string import ascii_letters, ascii_lowercase
@@ -27,6 +27,7 @@ CHAR = {
 RESERVED = ['print','begin','end','and','or','not','while','wend','if','then','else','dim','true','false','sub','as','boolean','integer','main']
 
 VARNAME_CHARS = '0123456789_' + ascii_letters
+
 
 class Token():
 
@@ -111,7 +112,7 @@ class Tokenizer():
 
         self.actual = token
 
-        #print(self.actual.tp,self.actual.value)
+        print(self.actual.tp,self.actual.value)
 
 
 class Parser():
@@ -127,12 +128,27 @@ class Parser():
 
         st = SymbolTable()
 
+        # WRITE ASSEMBLY HEADER
+        file = open("source_code.asm", "w+", encoding="utf-8")    
+        with open("header.asm", "r", encoding="utf-8") as header:
+            for line in header.readlines():
+              file.write(line)
+
+        file.close()
+
         Parser.program().Evaluate(st)
         
+        file = open("source_code.asm", "a", encoding="utf-8")    
+        with open("footer.asm", "r", encoding="utf-8") as footer:
+            for line in footer.readlines():
+              file.write(line)
+
         if Parser.tokens.actual.tp != "EOF":
             raise ValueError(f"{Parser.tokens.actual.value} invalid at end of sentence")
 
     def parseFactor():
+
+
 
         #Parser.tokens.selectNext()
 

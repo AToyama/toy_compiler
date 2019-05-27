@@ -5,7 +5,7 @@
 
 # v2.3
 
-from node import Node, BinOp, UnOp, IntVal, NoOp, Print, Assignment, Statement, Identifier, Input, While, If, VarDec, Type, BoolVal, Program
+from node import Node, BinOp, UnOp, IntVal, NoOp, Print, Assignment, Identifier, Input, While, If, VarDec, Type, BoolVal, Program
 from pre_process import PrePro
 from symboltable import SymbolTable
 from string import ascii_letters, ascii_lowercase
@@ -24,9 +24,10 @@ CHAR = {
 
 }
 
-RESERVED = ['input','print','begin','end','and','or','not','while','wend','if','then','else','dim','true','false','sub','as','boolean','integer','main']
+RESERVED = ['print','begin','end','and','or','not','while','wend','if','then','else','dim','true','false','sub','as','boolean','integer','main']
 
 VARNAME_CHARS = '0123456789_' + ascii_letters
+
 
 class Token():
 
@@ -111,7 +112,7 @@ class Tokenizer():
 
         self.actual = token
 
-        # print(self.actual.tp,self.actual.value)
+        print(self.actual.tp,self.actual.value)
 
 
 class Parser():
@@ -127,12 +128,27 @@ class Parser():
 
         st = SymbolTable()
 
+        # WRITE ASSEMBLY HEADER
+        file = open("source_code.asm", "w+", encoding="utf-8")    
+        with open("header.asm", "r", encoding="utf-8") as header:
+            for line in header.readlines():
+              file.write(line)
+
+        file.close()
+
         Parser.program().Evaluate(st)
         
+        file = open("source_code.asm", "a", encoding="utf-8")    
+        with open("footer.asm", "r", encoding="utf-8") as footer:
+            for line in footer.readlines():
+              file.write(line)
+
         if Parser.tokens.actual.tp != "EOF":
             raise ValueError(f"{Parser.tokens.actual.value} invalid at end of sentence")
 
     def parseFactor():
+
+
 
         #Parser.tokens.selectNext()
 
@@ -141,15 +157,12 @@ class Parser():
             Parser.tokens.selectNext()
 
         elif Parser.tokens.actual.tp == "PLUS":
-            Parser.tokens.selectNext()
             node = UnOp("+",Parser.parseFactor())
 
         elif Parser.tokens.actual.tp == "MINUS":
-            Parser.tokens.selectNext()
             node = UnOp("-",Parser.parseFactor())
         
         elif Parser.tokens.actual.tp == "NOT":
-            Parser.tokens.selectNext()
             node = UnOp("NOT",Parser.parseFactor())
 
         elif Parser.tokens.actual.tp in ["TRUE","FALSE"]:
@@ -158,7 +171,7 @@ class Parser():
 
         elif Parser.tokens.actual.tp == "OPENP":
             Parser.tokens.selectNext()
-            node = Parser.parseRelExpression()
+            node = Parser.parseExpression()
 
             if Parser.tokens.actual.tp != "CLOSEP":
                 raise ValueError("Missing parentheses")
@@ -207,15 +220,12 @@ class Parser():
         while Parser.tokens.actual.tp in ["PLUS","MINUS","OR"]:
 
             if Parser.tokens.actual.tp == "PLUS":
-                Parser.tokens.selectNext()
                 node = BinOp("+",[node,Parser.parseTerm()])
 
             elif Parser.tokens.actual.tp == "MINUS":
-                Parser.tokens.selectNext()
                 node = BinOp("-",[node,Parser.parseTerm()])
 
             elif Parser.tokens.actual.tp == "OR":
-                Parser.tokens.selectNext()
                 node = BinOp("OR",[node,Parser.parseTerm()])
 
         return node
@@ -227,15 +237,12 @@ class Parser():
         if Parser.tokens.actual.tp in ["EQUAL","GREATER_THAN","LESS_THAN"]:
 
             if Parser.tokens.actual.tp == "EQUAL":
-                Parser.tokens.selectNext()
                 node = BinOp("=",[node,Parser.parseExpression()])
 
             elif Parser.tokens.actual.tp == "GREATER_THAN":
-                Parser.tokens.selectNext()
                 node = BinOp(">",[node,Parser.parseExpression()])
 
             elif Parser.tokens.actual.tp == "LESS_THAN":
-                Parser.tokens.selectNext()
                 node = BinOp("<",[node,Parser.parseExpression()])
 
         return node
@@ -264,14 +271,10 @@ class Parser():
             if Parser.tokens.actual.tp == "EQUAL":
                 Parser.tokens.selectNext()
                 node = Assignment([variable_name, Parser.parseRelExpression()])
-
-            else:
-                raise ValueError(f"EQUAL token expected, got {Parser.tokens.actual.tp}")
-
         
         elif Parser.tokens.actual.tp == "PRINT":
             Parser.tokens.selectNext()
-            node = Print(Parser.parseRelExpression())
+            node = Print(Parser.parseExpression())
 
         elif Parser.tokens.actual.tp == "DIM":
             Parser.tokens.selectNext()
@@ -297,29 +300,15 @@ class Parser():
             
             if Parser.tokens.actual.tp == "BREAK_LINE":
                 Parser.tokens.selectNext()
-                statements = []
+                statement = Parser.parseStatements()
 
-                while Parser.tokens.actual.tp != "WEND":
-                    statements.append(Parser.parseStatement())
+                if Parser.tokens.actual.tp == "WEND":
 
-                    if Parser.tokens.actual.tp == "BREAK_LINE":
-                        Parser.tokens.selectNext()
-
-                    else:
-                        raise ValueError(f"BREAK_LINE expected, got {Parser.tokens.actual.tp}")
-
-                Parser.tokens.selectNext()
-                node = While([condition, statements])
-
-                if Parser.tokens.actual.tp == "BREAK_LINE":
+                    node = While([condition,statement])
                     Parser.tokens.selectNext()
 
                 else:
-                    raise ValueError(f"BREAK_LINE expected, got {Parser.tokens.actual.tp}")
-              
-                    
-                # else:
-                #     raise SyntaxError(f"WEND token expected, got {Parser.tokens.actual.value}")
+                    raise SyntaxError(f"WEND token expected, got {Parser.tokens.actual.value}")
 
             else:
                 raise SyntaxError(f"must skip a line after while condition")
@@ -374,18 +363,6 @@ class Parser():
 
                         else:
                             raise SyntaxError(f"IF token expected, got {Parser.tokens.actual.value}")
-                    
-                    elif Parser.tokens.actual.tp == "END":
-
-                        Parser.tokens.selectNext()
-                            
-                        if Parser.tokens.actual.tp == "IF":
-                            node = If([condition,if_statements])
-                            Parser.tokens.selectNext()
-
-                        else:
-                            raise SyntaxError(f"IF token expected, got {Parser.tokens.actual.value}")    
-
                     else:
                         raise SyntaxError(f"ELSE token expected, got {Parser.tokens.actual.value}")
                 else:
@@ -427,15 +404,9 @@ class Parser():
                             
                             Parser.tokens.selectNext()
 
-                            while Parser.tokens.actual.tp == "BREAK_LINE":
-                                Parser.tokens.selectNext()
-
                             if Parser.tokens.actual.tp == "SUB":
                                 Parser.tokens.selectNext()
-
-                                while Parser.tokens.actual.tp == "BREAK_LINE":
-                                    Parser.tokens.selectNext()
-    
+                            
                             else:
                                 raise ValueError(f"SUB expected, got {Parser.tokens.actual.tp}")
                         else:

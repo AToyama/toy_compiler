@@ -24,7 +24,7 @@ CHAR = {
 
 }
 
-RESERVED = ['print','begin','end','and','or','not','while','wend','if','then','else','dim','true','false','sub','as','boolean','integer','main']
+RESERVED = ['input','print','begin','end','and','or','not','while','wend','if','then','else','dim','true','false','sub','as','boolean','integer','main']
 
 VARNAME_CHARS = '0123456789_' + ascii_letters
 
@@ -111,7 +111,7 @@ class Tokenizer():
 
         self.actual = token
 
-        #print(self.actual.tp,self.actual.value)
+        # print(self.actual.tp,self.actual.value)
 
 
 class Parser():
@@ -141,12 +141,15 @@ class Parser():
             Parser.tokens.selectNext()
 
         elif Parser.tokens.actual.tp == "PLUS":
+            Parser.tokens.selectNext()
             node = UnOp("+",Parser.parseFactor())
 
         elif Parser.tokens.actual.tp == "MINUS":
+            Parser.tokens.selectNext()
             node = UnOp("-",Parser.parseFactor())
         
         elif Parser.tokens.actual.tp == "NOT":
+            Parser.tokens.selectNext()
             node = UnOp("NOT",Parser.parseFactor())
 
         elif Parser.tokens.actual.tp in ["TRUE","FALSE"]:
@@ -155,7 +158,7 @@ class Parser():
 
         elif Parser.tokens.actual.tp == "OPENP":
             Parser.tokens.selectNext()
-            node = Parser.parseExpression()
+            node = Parser.parseRelExpression()
 
             if Parser.tokens.actual.tp != "CLOSEP":
                 raise ValueError("Missing parentheses")
@@ -204,12 +207,15 @@ class Parser():
         while Parser.tokens.actual.tp in ["PLUS","MINUS","OR"]:
 
             if Parser.tokens.actual.tp == "PLUS":
+                Parser.tokens.selectNext()
                 node = BinOp("+",[node,Parser.parseTerm()])
 
             elif Parser.tokens.actual.tp == "MINUS":
+                Parser.tokens.selectNext()
                 node = BinOp("-",[node,Parser.parseTerm()])
 
             elif Parser.tokens.actual.tp == "OR":
+                Parser.tokens.selectNext()
                 node = BinOp("OR",[node,Parser.parseTerm()])
 
         return node
@@ -221,12 +227,15 @@ class Parser():
         if Parser.tokens.actual.tp in ["EQUAL","GREATER_THAN","LESS_THAN"]:
 
             if Parser.tokens.actual.tp == "EQUAL":
+                Parser.tokens.selectNext()
                 node = BinOp("=",[node,Parser.parseExpression()])
 
             elif Parser.tokens.actual.tp == "GREATER_THAN":
+                Parser.tokens.selectNext()
                 node = BinOp(">",[node,Parser.parseExpression()])
 
             elif Parser.tokens.actual.tp == "LESS_THAN":
+                Parser.tokens.selectNext()
                 node = BinOp("<",[node,Parser.parseExpression()])
 
         return node
@@ -255,10 +264,14 @@ class Parser():
             if Parser.tokens.actual.tp == "EQUAL":
                 Parser.tokens.selectNext()
                 node = Assignment([variable_name, Parser.parseRelExpression()])
+
+            else:
+                raise ValueError(f"EQUAL token expected, got {Parser.tokens.actual.tp}")
+
         
         elif Parser.tokens.actual.tp == "PRINT":
             Parser.tokens.selectNext()
-            node = Print(Parser.parseExpression())
+            node = Print(Parser.parseRelExpression())
 
         elif Parser.tokens.actual.tp == "DIM":
             Parser.tokens.selectNext()
@@ -284,15 +297,29 @@ class Parser():
             
             if Parser.tokens.actual.tp == "BREAK_LINE":
                 Parser.tokens.selectNext()
-                statement = Parser.parseStatements()
+                statements = []
 
-                if Parser.tokens.actual.tp == "WEND":
+                while Parser.tokens.actual.tp != "WEND":
+                    statements.append(Parser.parseStatement())
 
-                    node = While([condition,statement])
+                    if Parser.tokens.actual.tp == "BREAK_LINE":
+                        Parser.tokens.selectNext()
+
+                    else:
+                        raise ValueError(f"BREAK_LINE expected, got {Parser.tokens.actual.tp}")
+
+                Parser.tokens.selectNext()
+                node = While([condition, statements])
+
+                if Parser.tokens.actual.tp == "BREAK_LINE":
                     Parser.tokens.selectNext()
 
                 else:
-                    raise SyntaxError(f"WEND token expected, got {Parser.tokens.actual.value}")
+                    raise ValueError(f"BREAK_LINE expected, got {Parser.tokens.actual.tp}")
+              
+                    
+                # else:
+                #     raise SyntaxError(f"WEND token expected, got {Parser.tokens.actual.value}")
 
             else:
                 raise SyntaxError(f"must skip a line after while condition")
@@ -347,6 +374,18 @@ class Parser():
 
                         else:
                             raise SyntaxError(f"IF token expected, got {Parser.tokens.actual.value}")
+                    
+                    elif Parser.tokens.actual.tp == "END":
+
+                        Parser.tokens.selectNext()
+                            
+                        if Parser.tokens.actual.tp == "IF":
+                            node = If([condition,if_statements])
+                            Parser.tokens.selectNext()
+
+                        else:
+                            raise SyntaxError(f"IF token expected, got {Parser.tokens.actual.value}")    
+
                     else:
                         raise SyntaxError(f"ELSE token expected, got {Parser.tokens.actual.value}")
                 else:
@@ -388,9 +427,15 @@ class Parser():
                             
                             Parser.tokens.selectNext()
 
+                            while Parser.tokens.actual.tp == "BREAK_LINE":
+                                Parser.tokens.selectNext()
+
                             if Parser.tokens.actual.tp == "SUB":
                                 Parser.tokens.selectNext()
-                            
+
+                                while Parser.tokens.actual.tp == "BREAK_LINE":
+                                    Parser.tokens.selectNext()
+    
                             else:
                                 raise ValueError(f"SUB expected, got {Parser.tokens.actual.tp}")
                         else:

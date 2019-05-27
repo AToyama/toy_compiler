@@ -46,21 +46,21 @@ class BinOp(Node):
 
 class UnOp(Node):
 
-	def __init__(self, value, children):
+    def __init__(self, value, children):
 
-		self.value = value
-		self.children = children
+      self.value = value
+      self.children = children
 
-def Evaluate(self, symboltable):
-    
-    if self.value == "+":
-        return self.children.Evaluate(symboltable)
-    
-    elif self.value == "-":
-        return - self.children.Evaluate(symboltable)
-    
-    elif self.value == "NOT":
-        return not self.children.Evaluate(symboltable)
+    def Evaluate(self, symboltable):
+
+        if self.value == "+":
+            return self.children.Evaluate(symboltable)
+        
+        elif self.value == "-":
+            return - self.children.Evaluate(symboltable)
+        
+        elif self.value == "NOT":
+            return not self.children.Evaluate(symboltable)
 
 class IntVal(Node):
 
@@ -80,7 +80,6 @@ class NoOp(Node):
 class Print(Node):
 
     def __init__(self, children):
-
         self.children = children
 
     def Evaluate(self, symboltable):
@@ -98,12 +97,10 @@ class Assignment(Node):
 
 class Identifier(Node):
     
-    def __init__(self, value):
-        
+    def __init__(self, value):      
         self.value = value
 
     def Evaluate(self, symboltable):
-
         return symboltable.getter(self.value)
 
 class Statement(Node):
@@ -137,8 +134,9 @@ class If(Node):
             for child in self.children[1]:
                 child.Evaluate(symboltable)
         else:
-            for child in self.children[2]:
-                child.Evaluate(symboltable)
+            if len(self.children) == 3:
+                for child in self.children[2]:
+                    child.Evaluate(symboltable)
 
 class While(Node):
 
@@ -148,7 +146,9 @@ class While(Node):
     def Evaluate(self, symboltable):
     
         while self.children[0].Evaluate(symboltable):
-            self.children[1].Evaluate(symboltable)
+            
+            for child in self.children[1]:
+                child.Evaluate(symboltable)
 
 class Type(Node):
     
@@ -167,10 +167,10 @@ class BoolVal(Node):
     def Evaluate(self, st):
         
         if self.value == "TRUE":
-            return (True, "BOOLEAN")
+            return True
 
         elif self.value == "FALSE":
-            return (False, "BOOLEAN")
+            return False
 
 class VarDec(Node):
 

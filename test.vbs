@@ -1,14 +1,23 @@
-Sub Main()
-    dim x as boolean
-    x = true
-    dim y as boolean
-    y = false
-    dim result as integer
-    result = 1
-    if x and y then
-      result = 2
-    else
-      result = 3 'comentario
-    end if
-    print(result)
-End Sub
+Sub main()
+
+    ' bool ops
+
+    Dim bt as boolean
+
+    Dim bf as boolean
+
+    bt = True
+
+    bf = False
+
+
+
+    print bf and bt
+
+    print bf or bt
+
+    print not bf
+
+    print not((bt and bf) or bf)
+
+end sub

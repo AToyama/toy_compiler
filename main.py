@@ -111,7 +111,7 @@ class Tokenizer():
 
         self.actual = token
 
-        # print(self.actual.tp,self.actual.value)
+        print(self.actual.tp,self.actual.value)
 
 
 class Parser():
@@ -583,6 +583,9 @@ class Parser():
 
                         if Parser.tokens.actual.tp == "BREAK_LINE":
                             Parser.tokens.selectNext()
+                        
+                        elif Parser.tokens.actual.tp == "END":
+                            break
 
                         else:
                           raise ValueError(f"BREAK_LINE expected, got {Parser.tokens.actual.tp}")

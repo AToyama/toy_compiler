@@ -1,30 +1,42 @@
-Function Soma(x as Integer, y as Integer, cond as boolean) as Integer
-  
-  Dim a as Integer
-  a = x + y + c
-  
-  if cond then
-      Print a*2
-  end if
+Sub main()
+    ' adaptado da sabrina
 
+    dim fizz as integer
+    dim buzz as integer
+    dim fizzbuzz as integer
+    dim n as integer
+    dim tres as integer
+    dim cinco as integer
+    dim flag as boolean
 
-  Soma = a
+    n = INPUT
+    fizz = 0000
+    buzz = 1111
+    fizzbuzz = 00001111
+    flag = True
 
-End Function
-  
-Sub Main()
-  
-  Dim a as Integer
-  Dim b as Integer
-  dim cond as Boolean
-  dim c as Integer
+    while n > 0
+        tres = (n - (n / 3 * 3))
+        cinco = (n - (n / 5 * 5))
 
-  c = 2
-  cond = True
-  a = 3
-  b = Soma(a, 4, cond)
-  
-  Print a
-  Print b
+        print n
 
-End Sub
+        if (tres = 0) and (cinco = 0) then
+            print fizzbuzz
+            flag = False
+        end if
+
+        if (tres = 0) and (flag = True) then
+            print fizz
+            flag = False
+        end if
+
+        if (cinco = 0) and (flag = True) then
+            print buzz
+            flag = False
+        end if
+
+        flag = True
+        n = n - 1
+    wend
+end sub

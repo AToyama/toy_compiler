@@ -5,24 +5,31 @@
 ```
 $ python main.py [input file]
 ```
-test.vbs available for testing in the repository
+test.vbs and test2.vbs available for testing in the repository
 
 ## EBNF
 
 ```
-comandos = “Begin”, “\n”, comando, “\n”, { comando, “\n” }, “End” ;
-comando = atribuição | print | while | if ;
-if = rel, then, comandos, (else, comandos, endif | endif);
-while = rel, comandos, wend;
-atribuição = identificador, “=”, expressão ;
-rel = expressão, (“=” | “<” | “>”), expressão
-expressão = termo, { (“+” | “-” | “or”), termo } ;
-termo = fator, { (“*” | “/” | “and”), fator } ;
-fator = (“+” | “-” | “not”), fator | número | “(”, expressão, “)” | identificador | Input ;
-identificador = letra, { letra | digito | “_” } ;
-número = dígito, { dígito } ;
-letra = ( a | ... | z | A | ... | Z ) ;
-dígito = ( 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0 ) ;
+program = ( FuncDec | SubDec ) ; 
+SubDec = "sub", identifier, "(", (identifier, "as", type, {",", identifier, "as", type} ), ")", "\n", {stmt, "\n"}, "end, "sub" ;
+FuncDec = "function", identifier, "(", (identifier, "as", type, {",", identifier, "as", type} ), ")", "as", type, "\n", { stmt, "\n" }, "end, "function" ;
+stmt = ( assignment | funccall | while | print | declaration | if ) ; 
+assignment = identifier, "=", relExpression ;
+funccall = identifier, "(", (identifier, "as", type, {",", identifier, "as", type} ), ")" ;
+while = "while", relExpression, "\n", { stmt, "\n"}, "wend" ;
+print = "print", relExpression ;
+declaration = "dim", identifier, "as", type ;
+if = "if", relExpression, "then", "\n", {stmt, "\n"}, ("else", "\n", {stmt, "\n"}), "end", "if" ;
+type = integer | boolean
+relExpression = expression, ("=" | "<" | ">"), expression ;
+expression = term, { (“+” | “-” | “or”), term } ;
+term = factor, { (“*” | “/” | “and”), factor } ;
+fator = ((“+” | “-” | “not”), factor) | identifier | "input" | boolean | integer | ( "(", relExpression, ")" ) ;
+identifier = letter, {letter | digit | "_"} ;
+integer = digit, { digit } ;
+boolean = True | False
+letter = ( a | ... | z | A | ... | Z ) ;
+dígit = ( 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0 ) ;
 ```
 
 ## Diagram

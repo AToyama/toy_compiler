@@ -1,19 +1,30 @@
+Function Soma(x as Integer, y as Integer, cond as boolean) as Integer
+  
+  Dim a as Integer
+  a = x + y + c
+  
+  if cond then
+      Print a*2
+  end if
+
+
+  Soma = a
+
+End Function
+  
 Sub Main()
+  
+  Dim a as Integer
+  Dim b as Integer
+  dim cond as Boolean
+  dim c as Integer
 
-    dim x as boolean
-    dim y as boolean
-    dim result as integer
-
-    x = true
-    y = false
-    result = 1
-
-    if x and y then
-      result = 2
-    else
-      result = 3 'comentario
-    end if
-
-    print(result)
+  c = 2
+  cond = True
+  a = 3
+  b = Soma(a, 4, cond)
+  
+  Print a
+  Print b
 
 End Sub

@@ -1,20 +1,13 @@
 class SymbolTable():
 
-    bytes = {
-        'DWORD': 4
-    }
-
-    def __init__(self):
+    def __init__(self, parent):
         self.symbol_table = {}
-        self.shift = 0
+        self.parent = parent
 
     def declare(self, variable_name, variable_type):
 
         if variable_name not in self.symbol_table.keys():
-            if variable_type in ["INTEGER","BOOLEAN"]:
-                self.shift += 4
-                self.symbol_table[variable_name] = [None, variable_type, 4]
-                return self.shift 
+            self.symbol_table[variable_name] = [None, variable_type]
 
         else:
           raise ValueError(f"{variable_name} already exists as a variable")
@@ -29,9 +22,21 @@ class SymbolTable():
             raise ValueError(f"{variable_name} not declared")
 
     def getter(self, variable):
-        
+
+
+        # print(variable,self.symbol_table)
         if variable in self.symbol_table.keys():
-            return self.symbol_table[variable]
+            if self.symbol_table[variable][0] == None:
+                return self.parent.getter(variable)
+            else:
+                return self.symbol_table[variable]
 
         else:
-            raise NameError(f"{variable} does not exist ")
+            if self.parent != None:
+                return self.parent.getter(variable)
+            else:
+                raise NameError(f"{variable} does not exist ")
+
+    def create(self, variable_name, variable_value, variable_type):
+
+        self.symbol_table[variable_name] = [variable_value, variable_type]

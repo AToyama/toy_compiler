@@ -111,7 +111,7 @@ class Tokenizer():
 
         self.actual = token
 
-        print(self.actual.tp,self.actual.value)
+        # print(self.actual.tp,self.actual.value)
 
 
 class Parser():

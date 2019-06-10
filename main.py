@@ -286,28 +286,37 @@ class Parser():
                 Parser.tokens.selectNext()
                 node = Assignment([Identifier(variable_name), Parser.parseRelExpression()])
 
-            elif Parser.tokens.actual.tp == "OPENP":
-                parameters = []
-                Parser.tokens.selectNext()
-
-                while Parser.tokens.actual.tp != "CLOSEP":
-                    parameters.append(Parser.parseRelExpression())
-                    
-                    if Parser.tokens.actual.tp == "COMMA":
-                        Parser.tokens.selectNext()
-
-                    else:
-                        break
-
-                if Parser.tokens.actual.tp != "CLOSEP":
-                    raise ValueError("Missing parentheses")
-
-                node = FuncCall(variable_name,parameters)
-                Parser.tokens.selectNext()
-
             else:
                 raise ValueError(f"EQUAL token expected, got {Parser.tokens.actual.tp}")
 
+        elif Parser.tokens.actual.tp == "CALL":
+            Parser.tokens.selectNext()
+            
+            if Parser.tokens.actual.tp == "IDENTIFIER":
+              variable_name = Parser.tokens.actual.value
+              Parser.tokens.selectNext()
+
+              if Parser.tokens.actual.tp == "OPENP":
+                  parameters = []
+                  Parser.tokens.selectNext()
+
+                  while Parser.tokens.actual.tp != "CLOSEP":
+                      parameters.append(Parser.parseRelExpression())
+                      
+                      if Parser.tokens.actual.tp == "COMMA":
+                          Parser.tokens.selectNext()
+
+                      else:
+                          break
+
+                  if Parser.tokens.actual.tp != "CLOSEP":
+                      raise ValueError("Missing parentheses")
+
+                  node = FuncCall(variable_name,parameters)
+                  Parser.tokens.selectNext()
+
+              else:
+                  raise ValueError("Missing parentheses")
         
         elif Parser.tokens.actual.tp == "PRINT":
             Parser.tokens.selectNext()

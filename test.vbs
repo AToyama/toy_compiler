@@ -1,42 +1,39 @@
-Sub main()
-    ' adaptado da sabrina
-
-    dim fizz as integer
-    dim buzz as integer
-    dim fizzbuzz as integer
-    dim n as integer
+Sub check(n as integer)
     dim tres as integer
     dim cinco as integer
     dim flag as boolean
-
-    n = INPUT
-    fizz = 0000
-    buzz = 1111
-    fizzbuzz = 00001111
+    
+    tres = (n - (n / 3 * 3))
+    cinco = (n - (n / 5 * 5))
     flag = True
 
+    if (tres = 0) and (cinco = 0) then
+        print 00001111
+        flag = False
+    end if
+
+    if (tres = 0) and (flag = True) then
+        print 0000
+        flag = False
+    end if
+
+    if (cinco = 0) and (flag = True) then
+        print 1111
+    end if
+End Sub
+
+Sub fizzBuzz()
+    ' adaptado da sabrina
+    Dim n as integer
+
+    n = input
+
     while n > 0
-        tres = (n - (n / 3 * 3))
-        cinco = (n - (n / 5 * 5))
-
-        print n
-
-        if (tres = 0) and (cinco = 0) then
-            print fizzbuzz
-            flag = False
-        end if
-
-        if (tres = 0) and (flag = True) then
-            print fizz
-            flag = False
-        end if
-
-        if (cinco = 0) and (flag = True) then
-            print buzz
-            flag = False
-        end if
-
-        flag = True
-        n = n - 1
+        Call check(n)
+        n = n - 1     
     wend
+End Sub
+
+Sub main()
+    Call fizzBuzz()
 end sub

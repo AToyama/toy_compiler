@@ -103,7 +103,7 @@ class Tokenizer():
             else:
 
                 # Invalid Token
-                raise ValueError(f"{self.origin[self.position]} is not a number")   
+                raise ValueError(f"{ self.origin[self.position] } is not a number")   
 
         # End of File 
         else:

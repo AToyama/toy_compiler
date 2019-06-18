@@ -78,32 +78,9 @@ _start :
 PUSH EBP ; guarda o base pointer
 MOV EBP, ESP ; estabelece um novo base pointer
 
-PUSH DWORD 0 ; Dim x as BOOLEAN [EBP-4]
-PUSH DWORD 0 ; Dim y as BOOLEAN [EBP-8]
-MOV EBX, True
-MOV [EBP-False] , EBX
-MOV EBX, False
-MOV [EBP-False] , EBX
-MOV EBX, 1
-MOV [EBP-4] , EBX
-IF_1:
-MOV EBX, [EBP-4]
-MOV EBX, [EBP-4]
-PUSH EBX
-POP EAX
-AND EAX, EBX
-MOV EBX, EAX
-CMP EBX, False
-JE EXIT_1
-MOV EBX, [EBP-4]
-MOV EBX, [EBP-4]
-PUSH EBX
-POP EAX
-AND EAX, EBX
-MOV EBX, EAX
-MOV EBX, 2
-MOV [EBP-4] , EBX
-EXIT_1:
+
+MOV EBX, 5
+MOV [EBP-4], EBX  ; a = 5
 PUSH EBX
 CALL print
 POP EBX

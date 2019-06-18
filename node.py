@@ -99,10 +99,10 @@ def Evaluate(self, symboltable):
     
     elif self.value == "NOT":
 
-        if value[0]:
-            write_line("MOV EBX, False")
-        else:
-            write_line("MOV EBX, True")
+        # if value[0]:
+        #     write_line("MOV EBX, False")
+        # else:
+        #     write_line("MOV EBX, True")
 
         return not value
 
@@ -114,14 +114,9 @@ class IntVal(Node):
 
     def Evaluate(self, symboltable):
 
-        if self.value == "TRUE":
-            write_line(f"MOV EBX, True")
+        write_line("\r")
+        write_line(f"MOV EBX, { self.value }")
 
-        elif self.value == "FALSE":
-            write_line(f"MOV EBX, False")
-
-        else:
-            write_line(f"MOV EBX, { self.value }")
         return self.value
 
 class NoOp(Node):
@@ -154,17 +149,7 @@ class Assignment(Node):
         variable_value = self.children[0].value
         variable_type = self.children[1].Evaluate(symboltable)
         
-        if variable[1] == "BOOLEAN":
-            if variable_type == "TRUE":
-                write_line(f"MOV [EBP-True] , EBX")
-            else:
-                print(variable_type, "------------------")
-                write_line(f"MOV [EBP-False] , EBX")
-
-        else:
-            write_line(f"MOV [EBP-{ variable[2]}] , EBX")
-
-
+        write_line(f"MOV [EBP-{variable[2]}], EBX  ; {variable_value} = {variable_type}")
         symboltable.setter(variable_value, variable_type)
 
 class Identifier(Node):
@@ -211,20 +196,24 @@ class If(Node):
 
     def Evaluate(self, symboltable):
 
-        # condition assembly
-        write_line(f"IF_{ self.id }:")
-        self.children[0].Evaluate(symboltable)
-        write_line("CMP EBX, False")
-        write_line(f"JE EXIT_{ self.id }")
-
-        if self.children[0].Evaluate(symboltable):
+        if len(self.children) < 3:
+            write_line("CMP EBX, False")
+            write_line(f"JE EXIT_{ self.id }")
             for child in self.children[1]:
                 child.Evaluate(symboltable)
             write_line(f"EXIT_{ self.id }:")
-            
+                    
         else:
+            write_line("CMP EBX, False")
+            write_line(f"JE ELSE_{ self.id }")
+            for child in self.children[1]:
+                child.Evaluate(symboltable)
+            write_line(f"JMP EXIT_{ self.id }")
+            write_line(f"ELSE_{ self.id }:")
             for child in self.children[2]:
                 child.Evaluate(symboltable)
+            write_line(f"EXIT_{ self.id }:")
+            
 
 class While(Node):
 
@@ -233,17 +222,18 @@ class While(Node):
 
     def Evaluate(self, symboltable):
 
-        # condition assembly
+        cond = self.children[0].Evaluate(symboltable)
+        
+        write_line("\r")
         write_line(f"LOOP_{ self.id }")
-        self.children[0].Evaluate(symboltable)
-        write_line(f"CMP EBX, False")
-        write_line(f"EXIT_{ self.id }")
-
-        while self.children[0].Evaluate(symboltable):
-            self.children[1].Evaluate(symboltable)
-
+    
+        write_line("CMP EBX, False")
+        write_line(f"JE EXIT_{ self.id }")
+        for child in self.children[1]:
+            child.evaluate(symboltable)
         write_line(f"JMP LOOP_{ self.id }")
         write_line(f"EXIT_{ self.id }:")
+        write_line("\r")
 
 class Type(Node):
     

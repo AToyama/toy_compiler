@@ -13,9 +13,10 @@ test.vbs and test2.vbs available for testing in the repository
 program = ( FuncDec | SubDec ) ; 
 SubDec = "sub", identifier, "(", (identifier, "as", type, {",", identifier, "as", type} ), ")", "\n", {stmt, "\n"}, "end, "sub" ;
 FuncDec = "function", identifier, "(", (identifier, "as", type, {",", identifier, "as", type} ), ")", "as", type, "\n", { stmt, "\n" }, "end, "function" ;
-stmt = ( assignment | funccall | while | print | declaration | if ) ; 
+stmt = ( assignment | funccall | subcall | while | print | declaration | if ) ; 
 assignment = identifier, "=", relExpression ;
 funccall = identifier, "(", (identifier, "as", type, {",", identifier, "as", type} ), ")" ;
+subcall = "call", identifier, "(", (identifier, "as", type, {",", identifier, "as", type} ), ")" ;
 while = "while", relExpression, "\n", { stmt, "\n"}, "wend" ;
 print = "print", relExpression ;
 declaration = "dim", identifier, "as", type ;
